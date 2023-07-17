@@ -97,4 +97,63 @@ Things affected on Spring Boot start up
     ConditionalOnNotWebApplication – application that is not a web application
     ConditionalOnProperty – presence of spring property
     ConditionalOnResource – presence of resource
-    ConditionalOnSingleCandidate – only one candidate for the bean found
+    ConditionalOnSingleCandidate – only one candidate for the bean found.
+7. Example [Link1](CustomAutoConfig) [Link2](CustomConfig)
+   ```java
+   //disable required classes where auto config is not required
+   @Configuration
+   @EnableAutoConfiguration(exclude = {DataSourceAutoConfiguration.class})
+   public class ApplicationConfiguration {
+   }
+   
+   //add CustomConfig Project As a Dependency
+   //implementation group: 'org.example', name: 'CustomConfig',version: '1.0-SNAPSHOT'
+   
+   //Config for CustomAutoConfig Project
+   @Configuration
+   @EnableTransactionManagement
+   @ConditionalOnClass(name = "org.hsqldb.Database")
+   public class DataSourceAutoConfiguration {
+
+    @Bean
+    public DataSource dataSource() {
+        return new EmbeddedDatabaseBuilder()
+                .generateUniqueName(true)
+                .build();
+    }
+   }
+   @Configuration
+   @ConditionalOnClass(name = "org.hsqldb.Database")
+   @EnableJpaRepositories(basePackages = {"com.spring.professional.exam.tutorial.module04.question04"})
+   public class JpaAutoConfiguration {
+   @Bean
+   @Autowired
+   public LocalContainerEntityManagerFactoryBean entityManagerFactory(DataSource dataSource) {
+   LocalContainerEntityManagerFactoryBean em = new LocalContainerEntityManagerFactoryBean();
+   em.setDataSource(dataSource);
+   em.setPackagesToScan("com.spring.professional.exam.tutorial.module04.question04");
+
+        HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
+        vendorAdapter.setGenerateDdl(true);
+
+        em.setJpaVendorAdapter(vendorAdapter);
+
+        return em;
+    }
+
+    @Bean
+    public PlatformTransactionManager transactionManager(EntityManagerFactory emf) {
+        JpaTransactionManager transactionManager = new JpaTransactionManager();
+        transactionManager.setEntityManagerFactory(emf);
+
+        return transactionManager;
+    }
+   }
+   
+   //resources/META-INF/spring.factories - declare the path to custom auto config classes
+   # Auto Configure
+   org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+   com.spring.professional.exam.tutorial.module04.question04.my.autoconfiguration.DataSourceAutoConfiguration,\
+    com.spring.professional.exam.tutorial.module04.question04.my.autoconfiguration.JpaAutoConfiguration
+    ```
+
