@@ -1,6 +1,15 @@
 Spring Boot
 ----------
-
+Errors Faced
+------------
+1. Java Versions, gradle and dependencies should sync
+2. If you are using annotation processor like lombok, MapStruct always declare annotation processor dependencies along with lombok, MapStruct dependencies
+   ```
+       implementation 'org.springframework.boot:spring-boot-starter-web:2.1.4.RELEASE'
+       implementation 'org.springframework.boot:spring-boot-configuration-processor:2.1.14.RELEASE'
+       compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.6'
+       annotationProcessor 'org.projectlombok:lombok:1.18.6'
+   ```
 What is SpringBoot?
 -------------------
 1. Spring Boot is a Java Framework that allows you to easily create stand-alone,
@@ -156,4 +165,103 @@ Things affected on Spring Boot start up
    com.spring.professional.exam.tutorial.module04.question04.my.autoconfiguration.DataSourceAutoConfiguration,\
     com.spring.professional.exam.tutorial.module04.question04.my.autoconfiguration.JpaAutoConfiguration
     ```
+
+Spring Boot starter POM
+-------------------------
+1. Spring Starter POM is a maven module that represents empty jar with set of
+   dependencies required to work with specified technology. Spring Starter may also
+   provide autoconfiguration to create beans required to integrate project with
+   technologies that you intend to use.
+2. Spring Starters are useful, because they simplify project setup by assuring that
+   all dependencies in correct versions are set. If Starter provides autoconfiguration
+   as well, it integrates technology with Spring Framework.
+3. This allows you to focus on business code instead of having to spend time on
+   identifying which dependency set is required and which versions are correct.
+   Autoconfiguration allows you to use technology within Spring Framework without
+   having to integrate technology with it manually
+4. Example
+   1. First, let's look at developing the REST service; we can use libraries like Spring MVC, Tomcat and Jackson – a lot of dependencies for a single application.Spring Boot starters can help to reduce the number of manually added dependencies just by adding one dependency.
+   ```
+     <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+     </dependency>
+
+     ```
+
+properties and YML files.
+------------------------
+1. Spring Boot allows you to externalize configuration for the application by using
+   properties stored in properties files that can be in format:
+   1. YAML
+   2. Java Properties File
+2. YAML is a superset of JSON and it is convenience for specifying hierarchical data.
+   Spring Boot supports YAML properties with usage of SnakeYAML library, which is
+   included by default by spring-boot-starter.
+   ![img.png](img.png)
+3. Example
+   ```java
+      //@EnableConfigurationProperties  -- set config class to map properties
+      @SpringBootApplication
+      @EnableConfigurationProperties(ApplicationConfiguration.class)
+      public class SpringBootConsoleApplication implements CommandLineRunner {
+
+      @Autowired
+      private ApplicationConfiguration applicationConfiguration;
+
+       }
+   
+   //@ConfigurationProperties -- set prefix and define mapping class
+   @ConfigurationProperties(prefix = "app")
+   @Getter
+   @Setter
+   @ToString
+   public class ApplicationConfiguration {
+    private String name;
+    private String description;
+    private List<String> servers;
+    private Map<String, EnvironmentConfiguration> environments;
+   }
+   
+   @Getter
+   @Setter
+   @ToString
+   public class EnvironmentConfiguration {
+      private String name;
+      private String url;
+   }
+   ```
+   ```
+   //application.properties
+   app.name=spring-boot-app
+   app.description=Example Spring Boot Application
+   app.servers[0]=server1
+   app.servers[1]=server2
+   app.servers[2]=server3
+   app.environments['dev'].name=Development Environment
+   app.environments['dev'].url=https://dev.example.com
+   app.environments['prod'].name=Prod Environment
+   app.environments['prod'].url=https://prod.example.com
+   
+   //or application.yaml
+   app:
+   name: spring-boot-app
+   description: Example Spring Boot Application
+
+   servers:
+   - server1
+   - server2
+   - server3
+
+   environments:
+   dev:
+   name: Development Environment
+   url: https://dev.example.com
+
+    prod:
+      name: Prod Environment
+      url: https://prod.example.com
+
+   ```
+
 

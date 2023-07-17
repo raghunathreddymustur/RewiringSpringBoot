@@ -1,4 +1,5 @@
 rootProject.name = 'RewiringSpringBoot'
 include 'CustomAutoConfig'
 include 'CustomConfig'
+include 'Properties'
 
