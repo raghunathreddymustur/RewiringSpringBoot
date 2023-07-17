@@ -265,3 +265,136 @@ properties and YML files - Externalizing Configuration
    ```
 
 
+Controlling logging with Spring Boot
+---------------
+1. Spring Boot allows you to configure following aspects of logging:
+   1. Logging Levels
+   2. Logging Pattern
+   3. Logging Colors
+   4. Logging Output – console, file
+   5. Logging Rotation
+   6. Logging Groups
+   7. Logging System used
+      1. Logback – default
+      2. log4j2
+      3.  JDK (Java Util Logging)
+   8. Logging System specific configuration:
+      1. Logback – logback-spring.xml
+      2. log4j2 - log4j2-spring.xml
+      3. JDK (Java Util Logging) - logging.properties
+2. Logging Levels can be set via application.properties:
+   1. logging.level.root=WARN
+   2. app.service.a.level=ALL
+   3. app.service.b.level=FINEST
+   4. app.service.c.level=FINER 
+   5. or by using logging system specific configuration, logback-spring.xml example:
+      1. <logger name="app.service.a" level="INFO"/>
+3. You can also use ––debug or ––trace argument when launching spring boot application:
+   1. $ java -jar myapp.jar ––debug
+4. It is also possible to specify debug=true or trace=true in
+      application.properties.
+5. Logging patterns can be set via application.properties:
+   ```
+   logging.pattern.console=%clr(%d{yy-MM-dd E HH:mm:ss.SSS}) \
+   {blue} %clr(%-5p) %clr(${PID}){faint} \
+   %clr(---){faint} %clr([%8.15t]){cyan} \
+   %clr(%-40.40logger{0}){blue} \
+   %clr(:){red} %clr(%m){faint}%n
+
+   ```
+6. or by using logging system specific configuration, logback-spring.xml example:
+   ```xml
+   <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>%d{yyyy-MM-dd} | %d{HH:mm:ss.SSS} | %thread | %5p | %logger{25} | %12(ID: %8mdc{id}) | %m%n</pattern>
+      <charset>utf8</charset>
+    </encoder>
+   </appender>
+   ```
+   
+7. Spring Boot allows you to control logs rotation by specifying maximum file size and
+   maximum number of logs file to keep in history.
+8. To achieve this behavior through application.properties, you need to set
+   following properties:
+   1. logging.file.max-size
+   2. logging.file.max-history
+9. You can also configure logging system specific settings, for example in logbackspring.xml you can configure rolling appender:
+   ```xml
+   <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+   <fileNamePattern>
+     ${LOG_PATH}/archived/log_%d{dd-MM-yyyy}_%i.log
+   </fileNamePattern>
+   <maxFileSize>10MB</maxFileSize>
+    <maxHistory>10</maxHistory>
+    <totalSizeCap>100MB</totalSizeCap>
+   </rollingPolicy>
+
+   ```
+10. Spring Boot can group loggers into group, which simplifies log management.
+    1. You can do this on application.properties level in following way:
+       logging.group.service-d-and-e=app.service.d, app.service.e
+       logging.level.service-d-and-e=DEBUG
+11. Spring Boot allows you to chose between logging subsystem
+    1. To use default Logback, you just need to use spring-boot-starter
+       dependency, autoconfiguration will setup all required beans:
+       ```xml
+            <dependencies>
+            <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter</artifactId>
+            </dependency>
+            </dependencies>
+       ```
+       
+12. Spring Boot allows you to chose between logging subsystem.
+    1. To use log4j2, you just need to exclude spring-boot-starter-logging and add dependency to
+       log4j2:
+       ```xml
+       <dependencies>
+        <dependency>
+         <groupId>org.springframework.boot</groupId>
+         <artifactId>spring-boot-starter</artifactId>
+         <exclusions>
+         <exclusion>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-starter-logging</artifactId>
+         </exclusion>
+        </exclusions>
+        </dependency>
+        <dependency>
+         <groupId>org.springframework.boot</groupId>
+         <artifactId>spring-boot-starter-log4j2</artifactId>
+        </dependency>
+       </dependencies>
+
+       ```
+13. Example
+    [Link](LoggingSpringBoot)
+
+
+Discovery of property files by Spring Boot 
+-------------------------
+1. Profile Specific:
+   1. Outside of Jar:
+      1. application-{profile}.properties and application-{profile}.yml outside of jar in
+         /config subdirectory
+      2. application-{profile}.properties and application-{profile}.yml outside of jar in
+         current directory
+   2. Inside Jar:
+      1. application-{profile}.properties and application-{profile}.yml inside of jar in /config
+         package on classpath
+      2. application-{profile}.properties and application-{profile}.yml inside of jar in
+         classpath root package
+2. Application Specific:
+   1. Outside of Jar:
+      1. application.properties and application.yml outside of jar in /config subdirectory
+      2. application.properties and application.yml outside of jar in current directory
+   2. inside a jar
+      1. application.properties and application.yml inside of jar in /config package on classpath
+      2. application.properties and application.yml inside of jar in classpath root package
+3. Example
+   ![img_1.png](img_1.png)
+4. Note -   launch with --spring.profiles.active=dev and working directory pointing to work-dir
+   ![img_2.png](img_2.png)
+5. [Repo Link](ReadingPropertiesFiles)
+

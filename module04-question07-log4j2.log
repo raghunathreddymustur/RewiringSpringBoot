@@ -1,0 +1,26 @@
+2023-07-17 22:23:16.293  WARN 24492 --- [main] ConfigServletWebServerApplicationContext : Exception encountered during context initialization - cancelling refresh attempt: org.springframework.context.ApplicationContextException: Unable to start web server; nested exception is org.springframework.context.ApplicationContextException: Unable to start ServletWebServerApplicationContext due to missing ServletWebServerFactory bean.
+2023-07-17 22:23:16.390 ERROR 24492 --- [main] o.s.b.SpringApplication                  : Application run failed
+
+org.springframework.context.ApplicationContextException: Unable to start web server; nested exception is org.springframework.context.ApplicationContextException: Unable to start ServletWebServerApplicationContext due to missing ServletWebServerFactory bean.
+	at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.onRefresh(ServletWebServerApplicationContext.java:157) ~[spring-boot-2.1.4.RELEASE.jar:2.1.4.RELEASE]
+	at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:543) ~[spring-context-5.1.6.RELEASE.jar:5.1.6.RELEASE]
+	at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.refresh(ServletWebServerApplicationContext.java:142) ~[spring-boot-2.1.4.RELEASE.jar:2.1.4.RELEASE]
+	at org.springframework.boot.SpringApplication.refresh(SpringApplication.java:775) [spring-boot-2.1.4.RELEASE.jar:2.1.4.RELEASE]
+	at org.springframework.boot.SpringApplication.refreshContext(SpringApplication.java:397) [spring-boot-2.1.4.RELEASE.jar:2.1.4.RELEASE]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:316) [spring-boot-2.1.4.RELEASE.jar:2.1.4.RELEASE]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1260) [spring-boot-2.1.4.RELEASE.jar:2.1.4.RELEASE]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1248) [spring-boot-2.1.4.RELEASE.jar:2.1.4.RELEASE]
+	at com.logging.springboot.SpringBootConsoleApplication.main(SpringBootConsoleApplication.java:18) [main/:?]
+Caused by: org.springframework.context.ApplicationContextException: Unable to start ServletWebServerApplicationContext due to missing ServletWebServerFactory bean.
+	at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.getWebServerFactory(ServletWebServerApplicationContext.java:206) ~[spring-boot-2.1.4.RELEASE.jar:2.1.4.RELEASE]
+	at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.createWebServer(ServletWebServerApplicationContext.java:180) ~[spring-boot-2.1.4.RELEASE.jar:2.1.4.RELEASE]
+	at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.onRefresh(ServletWebServerApplicationContext.java:154) ~[spring-boot-2.1.4.RELEASE.jar:2.1.4.RELEASE]
+	... 8 more
+
+2023-07-17 22:23:49.104  WARN 4160 --- [main] a.s.c                                    : WARNING Message from serviceC
+2023-07-17 22:23:49.106  INFO 4160 --- [main] a.s.d                                    : INFO Message from serviceD
+2023-07-17 22:23:49.107  WARN 4160 --- [main] a.s.d                                    : WARNING Message from serviceD
+2023-07-17 22:23:49.107  INFO 4160 --- [main] a.s.e                                    : INFO Message from serviceE
+2023-07-17 22:23:49.107  WARN 4160 --- [main] a.s.e                                    : WARNING Message from serviceE
+2023-07-17 22:23:49.107  INFO 4160 --- [main] a.s.f                                    : INFO Message from serviceF
+2023-07-17 22:23:49.107  WARN 4160 --- [main] a.s.f                                    : WARNING Message from serviceF
