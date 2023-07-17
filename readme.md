@@ -189,7 +189,7 @@ Spring Boot starter POM
 
      ```
 
-properties and YML files.
+properties and YML files - Externalizing Configuration
 ------------------------
 1. Spring Boot allows you to externalize configuration for the application by using
    properties stored in properties files that can be in format:
