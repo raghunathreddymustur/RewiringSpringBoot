@@ -486,5 +486,5 @@ properties - to configure external MySQL
     <artifactId>spring-boot-starter-data-jdbc</artifactId>
    </dependency>
     ```
-6. Link
-   1. 
+6. [SourceCode](ConnectingToMySQ;)
+   
