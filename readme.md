@@ -398,3 +398,93 @@ Discovery of property files by Spring Boot
    ![img_2.png](img_2.png)
 5. [Repo Link](ReadingPropertiesFiles)
 
+Defining profile specific property files
+---------
+1. Spring Boot allows you to define profile specific property files in two ways:
+   1. Dedicated property file per profile:
+      1. application-{profile}.properties
+      2. application-{profile}.yml
+   2. You can also use application-default.properties or application-default.yml filename to
+      specify property file that should be used when no profile is set
+   ![img_3.png](img_3.png)
+2. Multi-profile YAML Document
+   ```yaml
+    server:
+      url: https://local.service.com/
+    ---
+    spring:
+      profiles: dev
+    server:
+      url: https://dev.service.com/
+      ---
+    spring:
+      profiles: prod
+    server:
+      url: https://prod.service.com/
+
+    ```
+
+Accessing the properties defined in the property files  
+--------------------
+1. Spring Boot allows you to access properties defined in property files in following ways:
+   1. `@Value("${PROPERTY_NAME}")`
+      1. You can inject properties into fields with usage of @Value annotation:
+         ```
+             @Value("${app.propertyB}")
+             private String propertyB;
+         ```
+   2. `@ConfigurationProperties`
+      1. You can define Data Object which will hold properties for defined prefix, you also need to
+         register Configuration Properties Data Object with usage of EnableConfigurationProperties:
+         ```java
+            @ConfigurationProperties(prefix = "app")
+            @Getter
+            @Setter
+            public class AppConfiguration {
+            private String propertyA;
+            }
+         ```
+   3. `Environment` Property Resolver
+      1. Inject and use Environment object.
+      ```
+         @Autowired
+         private Environment environment;
+         environment.getProperty("app.propertyC")
+        ```
+   4. Example Properties
+      ```properties
+      app.propertyA=valueA
+      app.propertyB=valueB
+      app.propertyC=valueC
+      ```
+properties - to configure external MySQL
+   ------
+1. To configure external MySQL in Spring Boot you need to specify URL, Username and Password for
+   Data Source by defining following properties:
+   ```properties
+   spring.datasource.url=jdbc:mysql://localhost:3306/spring-tutorial
+   spring.datasource.username=spring-tutorial
+   spring.datasource.password=spring-tutorial
+
+     ```
+2. Optionally, you can also explicitly specify JDBC Driver:
+   1. `spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver`
+3. To initialize Database during application startup via data.sql and schema.sql you also need to
+   specify property:
+   `spring.datasource.initialization-mode=always`
+4. specify connector dependency:
+   ```xml
+      <dependency>
+       <groupId>mysql</groupId>
+       <artifactId>mysql-connector-java</artifactId>
+      </dependency>
+   ```
+5. You will also need a way to access database, simplest approach is to use JDBC:
+   ```xml
+   <dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-data-jdbc</artifactId>
+   </dependency>
+    ```
+6. Link
+   1. 
