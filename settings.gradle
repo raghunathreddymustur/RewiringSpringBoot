@@ -5,4 +5,6 @@ include 'Properties'
 include 'LoggingSpringBoot'
 include 'ReadingPropertiesFiles'
 include 'ConnectingToMySQ;'
+include 'ConfiguringProperties'
+include 'fatJar'
 

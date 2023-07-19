@@ -1,0 +1,22 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '2.5.2'
+}
+
+group 'org.example'
+version '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter:2.1.4.RELEASE'
+}
+bootJar {
+    // You can customize the JAR file name if needed
+    archiveFileName = 'your-fat.jar'
+}
+test {
+    useJUnitPlatform()
+}

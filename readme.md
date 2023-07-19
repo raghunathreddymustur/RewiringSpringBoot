@@ -487,4 +487,403 @@ properties - to configure external MySQL
    </dependency>
     ```
 6. [SourceCode](ConnectingToMySQ;)
+
+Configuration of  default schema and initial data:
+------------------------
+1. Spring Boot uses following scripts to configure default schema and initial data:
+   1. `schema.sql` – contains DDL for db objects creation
+   2. `data.sql` – contains data that should be inserted upon db initialization
+2. Spring Boot will also load:
+   1. `schema-${platform}.sql`
+   2. `data-${platform}.sql`
+   3. platform is the value of` spring.datasource.platform` property, this allows you to switch
+      between database vendor specific scripts, for example platform may be mysql,
+      postgressql, oracle etc.
+3. Spring Boot will automatically initialize only embedded databases, if you want to initialize
+   regular database as well, you need to set property
+   `spring.datasource.initialization-mode` to always.
+4. If you would like to change default schema.sql and data.sql script names, you can use
+   spring.datasource.schema and spring.datasource.data properties to achieve this.
+5. Example [Source Link](ConfiguringProperties)
    
+Fat Jar
+--------
+1. Fat jar, also called “executable jar”, is a jar that contains compiled code for your application and
+   also all dependencies. Spring Boot uses nested jars approach, that means that fat jar contains all
+   dependencies as nested jars. This differs from other approach, which is uber jar that packs all
+   dependencies into single jar archive. Uber jar approach is problematic because it is hard to see
+   application dependencies and also causes issues when same filename in the same context is used in
+   different jars.
+2. Fat jar is often called “executable jar” because Spring Boot will generate MANIFEST.MF file which
+   contains Main-Class and Start-Class entries together with JarLauncher code. This manifest
+   together with launcher code will be used to execute standalone jar.
+3. To create fat jar in your project, you need to use plugin `id 'org.springframework.boot'`.
+   Executing application is as simple as executing one command:
+   1. `java -jar spring-boot-application-1.0-SNAPSHOT.jar`
+4. The differences in comparison to original jar are following:
+   1. Original jar does not contain all dependencies
+   2. Original jar is not executable by default
+5. Fat JAR
+   ![img_4.png](img_4.png)
+6. Normal Jar
+   ![img_5.png](img_5.png)
+7. Example [Source Link](fatJar) -- Execute fatJar Goal to generate fat jar
+
+Difference between an embedded container and a WAR
+-----------------------------------------------
+1. WAR (Web Application Archive) is a file that represents web module. WAR cannot be executed
+   in standalone mode, it needs to be deployed to Application Server like Tomcat or WildFly.
+2. Embedded container is used to execute executables jars. Embedded container is packed as
+   dependency in executable jar and will be responsible for executing only single application.
+   WAR approach on the other hand uses Application Server which might be used to execute
+   multiple applications at the same time.
+3. Structure 
+   ![img_6.png](img_6.png)
+4. To create WAR file with Spring Boot, you need to:
+   1. Specify WAR packaging method:
+      ```groovy
+      war {
+      // You can customize the WAR file name if needed
+      // archiveFileName = 'your-custom-name.war'
+      }
+
+        ```
+   2. Specify required dependencies:
+      ```xml
+      <dependencies>
+       <dependency>
+         <groupId>org.springframework.boot</groupId>
+         <artifactId>spring-boot-starter-web</artifactId>
+       </dependency>
+       <dependency>
+         <groupId>org.springframework.boot</groupId>
+         <artifactId>spring-boot-starter-tomcat</artifactId>
+         <scope>provided</scope>
+       </dependency>
+      </dependencies>
+
+       ```
+   3. Use WAR plugin (explicit specification of this plugin is optional):
+      ```xml
+      <build>
+      <plugins>
+       <plugin>
+         <groupId>org.apache.maven.plugins</groupId>
+         <artifactId>maven-war-plugin</artifactId>
+         <version>3.2.3</version>
+       </plugin>
+      </plugins>
+      </build>
+
+      ```
+   
+5. To create Executable JAR file with embedded container in Spring Boot, you need to:
+   1. Specify required dependencies:
+      ```xml
+      <dependencies>
+       <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+       </dependency>
+      </dependencies>
+      ```
+   2. Use Spring Boot Maven plugin:
+   ```xml
+   <build>
+    <plugins>
+     <plugin>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-maven-plugin</artifactId>
+      <executions>
+       <execution>
+         <goals>
+           <goal>repackage</goal>
+         </goals>
+       </execution>
+       </executions>
+       </plugin>
+    </plugins>
+    </build>
+   
+   ```
+
+ Embedded containers Supported by Spring Boot 
+---------------------
+1. Spring Boot supports following embedded containers:
+   1. Tomcat
+   2. Jetty
+   3. Undertow
+2. Tomcat is used as default embedded container, it will be automatically included when
+   application is using `spring-boot-starter-web`
+   ```xml
+   <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+   ```
+3. To use Jetty Embedded Container, you need to exclude spring-boot-starter-tomcat and
+   include spring-boot-starter-jetty:
+   ```xml
+      <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-tomcat</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-jetty</artifactId>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+     </build>
+     ```
+   
+4. To use Undertow Embedded Container, you need to exclude spring-boot-starter-tomcat
+   and include spring-boot-starter-undertow:
+   ```xml
+   <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-tomcat</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-undertow</artifactId>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    ```
+
+How does Spring Boot know what to configure
+--------------------------
+1. Spring Boot knows what to configure by usage of Auto Configuration Classes defined
+   in starter modules. Spring Boot searches for META-INF/spring.factories on
+   classpath, whenever entry org.springframework.boot.autoconfigure.EnableAutoConfiguration is
+   encountered in this file, Auto Configuration Class pointed by this property is loaded.
+2. Auto Configuration class is a regular @Configuration class annotated with
+   @ConditionalOn... annotation which specifies under which conditions
+   @Configuration class should be loaded.
+3. When conditions from @ConditionalOn... annotation are matched,
+   @Configuration class is loaded which provides beans that integrates your
+   application with specified technology
+4. Auto Configuration is often used with starter modules. Starter module provides set
+   of dependencies, and optionally may provide Auto Configuration classes.
+5. Spring Boot supports following Conditional Annotations for AutoConfiguration classes:
+    ConditionalOnBean – presence of Spring Bean
+    ConditionalOnMissingBean – absence of Spring Bean
+    ConditionalOnClass – presence of class on classpath
+    ConditionalOnMissingClass – absence of class on classpath
+    ConditionalOnCloudPlatform – if specified cloud platform is active – for
+   example Cloud Foundry
+    ConditionalOnExpression – if SpEL expression is true
+    ConditionalOnJava – presence of Java in specified version
+    ConditionalOnJndi – if JNDI location exists
+    ConditionalOnWebApplication – if a web application that uses
+   WebApplicationContext or StandardServletEnvironment
+    ConditionalOnNotWebApplication – application that is not a web application
+    ConditionalOnProperty – presence of spring property
+    ConditionalOnResource – presence of resource
+    ConditionalOnSingleCandidate – only one candidate for the bean found
+
+@EnableAutoConfiguration
+----------------------
+1. @EnableAutoConfiguration annotation turns on auto-configuration of Spring
+   Context. Auto-configuration tries to guess Spring Beans that should be created for
+   your application based on configured dependencies and configurations with
+   `@ConditionalOn`... annotations.
+2. When auto-configuration is turned on, Spring will search for` META-INF/spring.factories`
+   on classpath, whenever entry
+  ` org.springframework.boot.autoconfigure.EnableAutoConfiguration` is encountered in this file,
+   Auto Configuration Class pointed by this property is loaded. When condition present
+   in `@ConditionalOn`... annotation is matched, beans pointed out by this
+   configuration are created
+3. `@EnableAutoConfiguration` annotation should be applied to your application
+  ` @Configuration `class, when using Spring Boot with `@SpringBootApplication`
+   annotation,` @EnableAutoConfiguration` annotation is not required because
+   auto-configuration is turned on by default
+
+@SpringBootApplication 
+-----------------------
+1. @SpringBootApplication annotation is supposed to be used on top of the class
+   and it was introduced for convenience. Usage of` @SpringBootApplication`
+   annotation is equivalent to usage of following three annotations:
+   1. `@Configuration` – allows additional bean registration
+   2. `@EnableAutoConfiguration` – enables context auto-configuration
+   3. `@ComponentScan` – turns on scanning for @Component annotated classes
+
+Autoscanning
+-------------
+1. Spring Boot is performing component scan, because
+   @SpringBootApplication annotation is enabling component scanning with
+   usage of @ComponentScan annotation.
+2. By default, Spring Boot will search for @Component annotated classes within the
+   same root package as @SpringBootApplication annotated class.
+3. You can change this behavior by adding additional packages to scan with
+   scanBasePackages or type-safe version of it scanBasePackageClasses within
+   @SpringBootApplication annotation.
+   ```java
+   @SpringBootApplication(scanBasePackageClasses = {SpringBootConsoleApplication.class, ServiceB.class})
+   public class SpringBootConsoleApplication implements CommandLineRunner { 
+   }
+
+    ```
+   
+Auto-Configuration of  DataSource and JdbcTemplate
+---------------------
+1. DataSource and JdbcTemplate are configured by Auto Configuration Classes
+   defined in `spring-boot-autoconfigure` module.
+2. DataSource is configured by DataSourceAutoConfiguration, JdbcTemplate
+   is configured by JdbcTemplateAutoConfiguration.
+   DataSourceAutoConfiguration requires some properties to be defined,
+   example below shows MySQL configuration:
+   ```properties
+   spring.datasource.url=jdbc:mysql://localhost:3306/spring-tutorial
+   spring.datasource.username=spring-tutorial
+   spring.datasource.password=spring-tutorial
+    ```
+3. Above properties will be injected into DataSourceProperties by the prefix
+   spring.datasource and used by DataSourceAutoConfiguration.
+4. After having Auto Configuration enabled by default in Spring Boot, configured
+   properties and Database Connector on your classpath, you can just use @Autowire
+   to inject DataSource or JdbcTemplate.
+
+Use of spring.factories file
+-----------------------
+1. spring.factories file, located in` META-INF/spring.factories` location on
+   the classpath, is used by Auto Configuration mechanism to locate Auto Configuration
+   Classes. Each module that provides Auto Configuration Class needs to have `METAINF/spring.factories` file with `org.springframework.boot.autoconfigure.EnableAutoConfiguration` entry that will point Auto Configuration Classes.
+2. `META-INF/spring.factories` file is consumed by SpringFactoriesLoader
+   class, which is used by AutoConfigurationImportSelector enabled by
+   `@EnableAutoConfiguration` annotation used by default in
+   @SpringBootApplication annotation.
+3. Each Auto Configuration Class lists conditions, in which it should be applied, usually
+   based on existence of specific class on the classpath or bean in the context. When
+   conditions are met, @Configuration class produced beans within application
+   context to integrate your application with desired technology.
+4. Auto Configuration use case for spring.factories file is probably most popular one, it also
+   allows you to define other entries and achieve context customization with following classes:
+    ApplicationContextInitializer
+    ApplicationListener
+    AutoConfigurationImportFilter
+    AutoConfigurationImportListener
+    BeanInfoFactory
+    ContextCustomizer
+    DefaultTestExecutionListenersPostProcessor
+    EnableAutoConfiguration
+    EnvironmentPostProcessor
+    FailureAnalysisReporter
+    FailureAnalyzer
+    ManagementContextConfiguration
+    PropertySourceLoader
+    ProxyDetector
+    RepositoryFactorySupport
+    SpringApplicationRunListener
+    SpringBootExceptionReporter
+    TemplateAvailabilityProvider
+    TestExecutionListener
+
+Customize Spring auto configuration
+-----------------------------
+1. You can customize Spring Auto Configuration by creating your own autoconfiguration module with Auto Configuration Class.
+2. To do that, you need to create java jar module which will contain METAINF/spring.factories file that contains org.springframework.boot.autoconfigure.EnableAutoConfiguration entry, which points to your Auto Configuration Class.
+3. Auto Configuration Class is a class annotated with @Configuration annotation,
+   usually used together with @ConditionalOnClass annotation. Additionally you
+   can use @PropertySource annotation with
+   @EnableConfigurationProperties and @ConfigurationProperties
+   annotations to introduce custom properties for your auto-configuration module.
+4. Inside Auto Configuration Class you should have @Bean annotated methods, which
+   will provide configured beans when @ConditionalOnClass is met.
+5. [source](CustomAutoConfig)
+
+@Conditional annotations
+---------------------
+1. Spring Boot supports following Conditional Annotations for Auto Configuration Classes:
+    ConditionalOnBean – presence of Spring Bean
+    ConditionalOnMissingBean – absence of Spring Bean
+    ConditionalOnClass – presence of class on classpath
+    ConditionalOnMissingClass – absence of class on classpath
+    ConditionalOnCloudPlatform – if specified cloud platform is active – for
+   example Cloud Foundry
+    ConditionalOnExpression – if SpEL expression is true
+    ConditionalOnJava – presence of Java in specified version
+    ConditionalOnJndi – if JNDI location exists
+    ConditionalOnWebApplication – if a web application that uses
+   WebApplicationContext or StandardServletEnvironment
+    ConditionalOnNotWebApplication – application that is not a web application
+    ConditionalOnProperty – presence of spring property
+    ConditionalOnResource – presence of resource
+    ConditionalOnSingleCandidate – only one candidate for the bean found
+2. Example
+   1. @Conditional annotations are used together with Auto Configuration Classes,
+      to indicate under which conditions, specific @Configuration class should
+      apply
+   ```java
+      @Configuration
+      @ConditionalOnProperty(name = "file.store", havingValue = "network")
+      public class NetworkFileStoreAutoConfiguration {
+        @Bean
+        public FileStore networkFileStore() {
+        return new NetworkFileStore();
+        }
+      }
+    ```
