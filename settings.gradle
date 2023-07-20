@@ -7,4 +7,5 @@ include 'ReadingPropertiesFiles'
 include 'ConnectingToMySQ;'
 include 'ConfiguringProperties'
 include 'fatJar'
+include 'IntroSpringBootActuator'
 

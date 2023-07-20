@@ -887,3 +887,53 @@ Customize Spring auto configuration
         }
       }
     ```
+
+
+Spring Boot Actuator
+-------------------
+1. Spring Boot Actuator provides features, that are required for your application to be viewed
+   as production ready product, such as:
+   1. Monitoring
+   2. Health-checks
+   3. Metrics
+   4. Audit Events
+2. Advantage of using Spring Boot Actuator is that you can use those features in your product,
+   without having to code them on your own, and enabling it, is as simple as putting
+   dependency in your project:
+   ```xml
+   <dependency>
+       <groupId>org.springframework.boot</groupId>
+       <artifactId>spring-boot-starter-actuator</artifactId>
+   </dependency>
+      ```
+3. After that you can access endpoints available by default:
+   1. /actuator/health
+   2. /actuator/info -- read from properties files
+4. [Source Code](IntroSpringBootActuator)
+
+Protocols used to access actuator endpoints
+---------------------------------------
+1. Spring Boot Actuator supports two protocols:
+   1. HTTP
+   2. JMX
+2. HTTP endpoints can be accessed by any HTTP Client, like CURL or Web Browser, by default following are
+   enabled:
+   1. /actuator/info
+   2. /actuator/health
+3. JMX allows you to access Actuator MBeans under org.springframework.boot group. You can access
+   it with any tool that supports JMX protocol. One of the tool that you can use is JConsole which comes
+   with JDK. You can access JMX
+   1. ![img_7.png](img_7.png)
+   2. Locally by PID (enabled by default since Java SE 6)
+      ![img_8.png](img_8.png)
+      ![img_9.png](img_9.png)
+   3. Remotely via Socket after enabling it with following Java VM flags (below example setup is simple
+      but unsecure, do not use in production):
+      ```
+      -Dcom.sun.management.jmxremote.local.only=false
+      -Dcom.sun.management.jmxremote.port=9010
+      -Dcom.sun.management.jmxremote.authenticate=false
+      -Dcom.sun.management.jmxremote.ssl=false
+
+      ```
+   
