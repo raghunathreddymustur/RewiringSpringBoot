@@ -936,4 +936,174 @@ Protocols used to access actuator endpoints
       -Dcom.sun.management.jmxremote.ssl=false
 
       ```
+
+Actuator endpoints that are provided out of the box
+----------------------------
+![img_10.png](img_10.png)
+![img_11.png](img_11.png)
+![img_12.png](img_12.png)
+
+Enabling & disabling actuator endpoints
+----------------------------------------
+1. management.endpoint.${ENDPOINT_NAME}.enabled=true
+2. Example
+   1. management.endpoint.shutdown.enabled=true
+   2. management.endpoint.beans.enabled=false
+   3. management.endpoint.info.enabled=false
+3. You can also disable ‘Enabled by default’ behavior with usage of property:
+   1. management.endpoints.enabled-by-default=false
+   2. management.endpoints.enabled-by-default=false
+4. You can change endpoints exposure with usage of properties:
+   1. management.endpoints.jmx.exposure.exclude
+   2. management.endpoints.jmx.exposure.include
+   3. management.endpoints.web.exposure.exclude
+   4. management.endpoints.web.exposure.include
+   5. Example
+      1. management.endpoints.web.exposure.include=info, health, env, beans
+   6. You can also expose all endpoints with usage of wildcard, for example
+      1. management.endpoints.web.exposure.include=*
+5. You can enable navigation through Actuator Endpoints, by usage of HATEOAS.
+   1. To enable this navigation, all you have to do is to add dependency to your project:
+      ```xml
+      <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-hateoas</artifactId>
+        </dependency>
+
+      ```
+6. http://localhost:8080/actuator
+7. [Source Code](IntroSpringBootActuator)
+
+Info endpoint - supply data
+----------
+1. Spring Boot Actuator info endpoint is used to provide arbitrary, non-sensitive,
+   custom defined data, available at runtime that can provide additional information
+   about started application.
+2. info endpoint is exposed by default via protocols:
+   1. HTTP at /actuator/info
+   2. JMX at org.springframework.boot/Endpoint/Info
+   3. info endpoint is usually used to expose information like:
+      1. Application Name, Description, Version
+      2. Java Runtime Used
+      3. Git Information – see git-commit-id-plugin
+         1. Branch
+         2. Tag
+3. You can supply data to Spring Boot by using following methods:
+   1. With usage of property files, by defining info.* properties
+      ```properties
+      info.app.name=Spring Boot Application
+      info.app.description=This application exposes Spring Boot Actuator Endpoints
+      info.app.version=1.0.0
+       ```
+   2. By implementing InfoContributor bean
+      ```java
+      @Component
+      public class SystemNameInfoContributor implements InfoContributor {
+      @Override
+      public void contribute(Info.Builder builder) {
+      builder.withDetail("system-name", System.getProperty("os.name"));
+      }
+      }
+
+       ```
+      
+4. [Source Code](IntroSpringBootActuator)
+
+Changing logging level of a package using loggers endpoint
+-----------------------
+1. Spring Actuator allows you to list currently configured loggers with their levels in
+   following ways:
+   1. via HTTP by visiting /actuator/loggers endpoint
+   2. via JMX by executing
+      1. org.springframework.boot/Endpoint/Loggers/Operations/loggers
+      
+2. loggers endpoint is exposed by default via JMX, to use it via HTTP you need to
+   expose it by setting following property in application.properties:
+   1. `management.endpoints.web.exposure.include=loggers`
+3. You can also view logging level for individual logger:
+   1. via HTTP by visiting /actuator/loggers/${LOGGER_NAME}, for example:
+      /actuator/loggers/com.app.question28
+   2. via JMX by executing 
+      1. org.springframework.boot/Endpoint/Loggers/Operations/loggerLevels
+         with provided name parameter
+4. You can change logging level for package by:
+   1. curl -i -X POST -H 'Content-Type: application/json' -d '{"configuredLevel": "TRACE"}' \
+      http://localhost:8080/actuator/loggers/com.app.question28
+   2. JMX via org.springframework.boot/Endpoint/Loggers/Operations/configureLogLevel with
+      name and configuredLevel parameters set
+5. [Source Code](IntroSpringBootActuator)
+
+Accessing an endpoint using a tag
+------------------
+1. You access an endpoint using a tag by defining it as part of the request in following way:
+   tag=KEY:VALUE.
+2. For example
+   ```
+   /actuator/metrics/http.server.requests?tag=status:200
+   /actuator/metrics/jvm.memory.max?tag=area:heap
+
+      ```
+3. You can also use multiple tags in one query with usage of & in following way:
+   1. tag=KEY1:VALUE1&tag=KEY2:VALUE2
+      1. /actuator/metrics/http.server.requests?tag=status:200&tag=method:GET
+      2. /actuator/metrics/jvm.memory.max?tag=area:heap&tag=id:G1%20Old%20Gen
+4. Tag is used to filter results of query by one or multiple dimensions. It is often used with
+   metrics endpoint for data filtering.
+
+
+Metrics End Point
+----------------
+1. Spring Actuator provides metrics endpoint which can be used to examine metrics
+   collected by the application during runtime
+2. metrics endpoint allows you to view information about specific metric by visiting metric
+   dedicated URI, for example `/actuator/metrics/process.cpu.usage`
+3. metrics endpoint allows you to drill down information further by usage of available tags,
+   for example /actuator/metrics/jvm.memory.used?tag=area:heap
+4. metrics endpoint allows you to view many out-of-the box defined metrics:
+   1. CPU Usage, CPU Core Count
+   2. Memory Usage, Max Memory Available
+   3. Threads Info
+   4. Garbage Collector Statistics
+   5. HTTP Requests Info
+   6. Embedded Tomcat Related Metrics
+   7. many more, also you can define custom metrics
+5. metrics endpoint is not exposed via Web by default, to have it available, you need to
+   add following entry to application.properties: 
+   1. `management.endpoints.web.exposure.include=metrics`
+
+
+create a custom metric
+-------------------
+1. Spring Boot Actuator allows you to create custom metrics with usage of
+   MeterRegistry from Micrometer Application Metrics Facade.
+2. Micrometer used by Spring Boot Actuator allows you to register following Meter
+   Primitives that will be exposed via /actuator/metrics endpoint:
+    Counter
+    Gauge
+    Timer
+    TimeGauge
+    DistributionSummary
+    LongTaskTimer
+    FunctionCounter
+    FunctionTimer
+3. Registration of metric can be done via method inside MeterRegistry:
+   1. `Counter objectsCount = meterRegistry.counter("storage.object.count", "type", "db");`
+
+4. or via usage of builder:
+   ```
+   Counter objectsCount = Counter.builder("storage.object.count")
+   .tag("type", "db")
+   .register(meterRegistry);
+
+    ```
+5. Micrometer allows you to expose data with dimensions via tags:
+   1. Counter objectsCount = meterRegistry.counter("storage.object.count", "type", "db");
+6. or register simple meter without any dimensions:
+   1. Counter objectsCount = meterRegistry.counter("storage.object.count"); 
+
+
    
+
+   
+
+      

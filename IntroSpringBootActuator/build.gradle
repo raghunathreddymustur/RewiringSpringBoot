@@ -10,6 +10,7 @@ repositories {
 }
 
 dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-hateoas:2.1.4.RELEASE'
     implementation 'org.springframework.boot:spring-boot-starter-actuator:2.1.4.RELEASE'
     implementation 'org.springframework.boot:spring-boot-starter-web:2.1.4.RELEASE'
 }
