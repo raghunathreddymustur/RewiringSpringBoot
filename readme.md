@@ -1101,8 +1101,170 @@ create a custom metric
 6. or register simple meter without any dimensions:
    1. Counter objectsCount = meterRegistry.counter("storage.object.count"); 
 
+Health Indicator
+----------------
+1. Health Indicator is a component used by /actuator/health endpoint to check if
+   system is in a state which can be used to successfully handle requests.
+2. /actuator/health endpoint is returning aggregated information on system status
+   by evaluating all Health Indicators registered in HealthIndicatorRegistry.
+3. /actuator/health endpoint is exposed by default via both JMX and Web, however
+   default configuration is exposing only minimal set of information.
+4. This endpoint is used, usually by monitoring software, to periodically check system
+   status, upon receiving failed status, automated alert is sent to product support
+   team
+5. Monitoring endpoint like this, is also very useful when building Highly Available and
+   Fault Tolerant Architecture, in this case such endpoint can be used by Load Balancer
+   to check which instances are healthy and can accept traffic.
+6. To change level of details exposed by /actuator/health endpoint, following
+   properties can be used:
+   1. management.endpoint.health.show-details
+   2. management.endpoint.health.show-components
+7. Both of them can support following values:
+   1. never – detailed information are never shown (default value)
+   2. when-authorized – show information to users with roles from property
+      management.endpoint.health.roles
+   3. always – detailed information are shown to all users
+8. To create custom Health Indicator, Spring Bean has to be created that implements
+   HealthIndicator interface:
+   ```java
+   @Component
+   public class CustomHealthIndicator implements HealthIndicator {
+   @Override
+   public Health health() {
+   return Health.up()
+   .withDetail("system-ready", true)
+   .build();
+   }
+   }
+    ```
+9. [Source Code](IntroSpringBootActuator)
+10. Spring Actuator provides following Health Indicators that are configured when proper
+    dependencies are found:
+    1. ApplicationHealthIndicator - Default Implementation, always up.
+    2. DiskSpaceHealthIndicator - Checks for low disk space.
+    3. DataSourceHealthIndicator - Checks the status of a DataSource and optionally
+       runs a test query
+    4. CassandraHealthIndicator - Checks that a Cassandra database is up.
+    5. CouchbaseHealthIndicator - Checks that a Couchbase cluster is up.
+    6. ElasticsearchHealthIndicator - Checks that an Elasticsearch cluster is up.
+    7. HazelcastHealthIndicator - Checks that a Hazelcast server is up.
+    8. many more
+11. Spring Actuator also provides Reactive Health Indicators for reactive applications, like those
+    using Spring WebFlux:
+    1. CassandraReactiveHealthIndicator - Checks that a Cassandra database is up.
+    2. CouchbaseReactiveHealthIndicator - Checks that a Couchbase cluster is up.
+    3. MongoReactiveHealthIndicator - Checks that a Mongo database is up.
+    4. RedisReactiveHealthIndicator - Checks that a Redis server is up.
 
-   
+Health Indicator status
+---------------
+1. Health Indicator status is used by Health Indicators to inform Spring
+   Actuator if system component checked by them is working correctly or not.
+2. Each Health Indicator is expected to return status that represents guarded
+   component state, status can be one of following:
+   1. UP - component or subsystem is functioning as expected
+   2. DOWN - component or subsystem has suffered an unexpected failure
+   3. OUT_OF_SERVICE - component or subsystem has been taken out of service and should
+      not be used
+   4. UNKNOWN - component or subsystem is in an unknown state
+   5. Custom Defined
+3. Spring Actuator is also using HealthAggregator, especially
+   OrderedHealthAggregator to aggregate statuses from all Health Indicators
+   and decide on final status. OrderedHealthAggregator is taking statuses from all
+   Health Indicators, sorts them by predefined order (DOWN, OUT_OF_SERVICE,
+   UP, UNKNOWN), and takes first element after sorting, which represents highest
+   priority status and becomes final status of the system.
+
+4. Based on Health Indicator Statuses from above, Spring will also perform default mapping
+   of status to HTTP Response Code with usage of HealthStatusHttpMapper that follows
+   this default configuration:
+   1. UP -> HTTP 200
+   2. UNKNOWN -> HTTP 200
+   3. DOWN -> HTTP 503
+   4. OUT_OF_SERVICE -> HTTP 503
+5. You can change default mapping with usage of management.health.status.httpmapping property, for example:
+   `management.health.status.http-mapping.DOWN=501`
+6. change the Health Indicator status severity order
+   1. Spring Actuator allows you to change Health Indicator Status severity order with
+      usage of property management.health.status.order for example:
+      1.` management.health.status.order=system-halted, DOWN, OUT_OF_SERVICE, UNKNOWN, UP`
+   2. This property will be injected into HealthIndicatorProperties and used by
+      OrderedHealthAggregator to resolve final status for application by aggregating
+      statuses from all Health Indicators available in the system.
+
+3rd-party external monitoring system Integration
+------------------------
+1. It is a good idea to use external monitoring system, because this way you can use
+   monitoring functionalities without having to spend time coding them.
+2. External monitoring system usually provides:
+   1. Durable persistent storage
+   2. Tested way of ingesting massive amount of data
+   3. A way to query for data
+   4. A way to perform data visualization
+   5. Configurable Dashboards
+   6. Configurable alerting
+3. Spring Actuator uses Micrometer Application Metrics Facade which integrates with
+    number of external monitoring systems. Provided dependency management and
+    auto-configuration makes it easy to integrate Micrometer into your project.
+4. Spring Boot supports following monitoring systems:
+    AppOptics
+    Atlas
+    Datadog
+    Dynatrace
+    Elastic
+    Ganglia
+    Graphite
+    Humio
+    Influx
+    JMX
+    KairosDB
+    New Relic
+    Prometheus
+    SignalFx
+    Simple (in-memory)
+    StatsD
+    Wavefront
+5. Configuring external monitoring system is as easy as adding dependency:
+   ```xml
+   <dependency>
+     <groupId>io.micrometer</groupId>
+     <artifactId>micrometer-registry-${monitoring-system-name}</artifactId>
+   </dependency>
+    ```
+6. You might also need to configure some properties, for example:
+   `management.metrics.export.elastic.host=http://localhost:9200`
+
+
+@SpringBootTest 
+-------------------
+1. You should use `@SpringBootTest` annotation whenever writing `JUnit Integration Test`
+   for product that is using Spring Boot.
+2. Spring Boot approach to Integration Testing simplifies it by eliminating requirement of
+   application deployment or establishing connection to other infrastructure.
+3. @SpringBootTest annotation enables Spring Boot specific features on top of Spring
+   Test that are useful for testing, like:
+   1. Automated Context creation through SpringApplication class
+   2. Web Environment for Testing – Mocked or Embedded
+   3. Mocked Bean Injection via @MockBean annotation
+   4. Spy Injection via @SpyBean annotation
+   5. Ability to customize created context with @TestConfiguration annotated classes
+   6. Auto configurations for
+      1. MVC Testin
+      2. JSON Testing
+      3. JPA Tests
+      4. JDBC Tests
+      5. Mongo Db Tests
+      6. and much more..
+4. To use @SpringBootTest annotation, you will need to add
+   @RunWith(SpringRunner.class) annotation on top of your test class first, this
+   is required only for JUnit 4,
+5. Next you need to use @SpringBootTest annotation:
+
+
+
+
+
+
 
    
 
