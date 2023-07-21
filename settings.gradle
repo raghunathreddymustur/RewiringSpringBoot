@@ -8,4 +8,6 @@ include 'ConnectingToMySQ;'
 include 'ConfiguringProperties'
 include 'fatJar'
 include 'IntroSpringBootActuator'
+include 'TestingSpringBoot'
+include 'MockVSMockBean'
 

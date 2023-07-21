@@ -1259,13 +1259,154 @@ Health Indicator status
    @RunWith(SpringRunner.class) annotation on top of your test class first, this
    is required only for JUnit 4,
 5. Next you need to use @SpringBootTest annotation:
-
-
-
-
-
-
-
+6. Example
+   ```java
    
-
+   @RunWith(SpringRunner.class)
+   @SpringBootTest
+   @AutoConfigureMockMvc
+   public class HelloControllerTest {
+   @Autowired
+   private MockMvc mockMvc;
+   @MockBean
+   private NameService nameService;
+   @Test
+   public void shouldSayHello() throws Exception {
+   when(nameService.getName()).thenReturn("Test");
+   
+         MvcResult mvcResult = mockMvc.perform(MockMvcRequestBuilders.get("/"))
+                .andReturn();
       
+         assertEquals("Hello Test", mvcResult.getResponse().getContentAsString());
+        }
+      }
+    ```
+7. [Soure code](TestingSpringBoot)
+
+@SpringBootTest
+---------------
+1. @SpringBootTest annotation will auto-configure:
+   1. ApplicationContext for testing
+   2. Test itself with tools used for testing
+2. ApplicationContext is configured by searching for @SpringBootApplication
+      or @SpringBootConfiguration annotated classes, based on those bean
+      definitions will be created
+3. It is also possible to test only slice of the application with usage one of following:
+   1. @SpringBootTest#classes
+   2. @ContextConfiguration#classes
+   3. @AutoConfigure… annotations
+      1. @AutoConfigure… annotations allows you to configure specific environment and
+         tools for testing, for example @AutoConfigureMockMvc will configure Mock Mvc
+         that can be used for Controllers testing.
+4. Spring Boot Test includes annotations that are wrapping @AutoConfigure…
+   annotations and make test development simpler:
+    @JsonTest
+    @WebMvcTest
+    @WebFluxTest
+    @DataJpaTest
+    @JdbcTest
+    @JooqTest
+    @DataMongoTest
+    @DataLdapTest
+    @RestClientTest and many more
+5. [SOURCE CODE](TestingSpringBoot/src/test/java/com/raghu/spingboot/test/controller)
+
+What dependencies does spring-boot-startertest brings to the classpath
+-----------
+1. spring-boot-starter-test brings following dependencies:
+   1. JUnit - Unit Testing for Java Applications
+   2. Spring Test - Spring Framework Support for Testing
+   3. Spring Boot Test - Utilities and Integration Test Support for Spring Boot
+   4. AssertJ - Fluent Assertion Library
+   5. Hamcrest - Matchers Library
+   6. Mockito - Mocking Framework
+   7. JSONassert - JSON Assertion Library
+   8. JsonPath - XPath for JSON
+   9. XMLUnit - Tools for XML verification
+
+Integration testing with @SpringBootTest for a web application
+==============================
+1. Integration Test by definition, should check interactions between few components of
+   the system (`at least two real, not-mocked components`) to check if those
+   components are delivering expected functionalities when working together. In each
+   case when writing Integration Test you should decide how many components should
+   interact in the test for it to be meaningful. Usually you should decide on smallest
+   possible amount of components that are enough to test specific functionality.
+   Components that are not meaningful can be omitted, or mocked with usage of
+   @MockBean annotation.
+2. Web components tests (Controller Tests, Rest Controller Tests), if tested in
+   Integration way, should be written in a way for test to make a HTTP Request and
+   check HTTP Response. This kind of approach results in meaningful test, which
+   delivers feedback that actually checks if component works correctly.
+3. Spring Boot allows you to write Integration Tests for Web Components in two ways
+   1. MockMvc - [Source code](TestingSpringBoot/src/test/java/com/raghu/spingboot/test/controller/CityControllerMockMvcFullTest.java)
+   2. Embedded Container - [Source code](TestingSpringBoot/src/test/java/com/raghu/spingboot/test/controller/CityControllerRestTemplateTest.java)
+
+@WebMvcTest
+=========
+1. You should use @WebMvcTest annotation when you want to write Integration Test
+   that is focused on web layer - controller of your application. @WebMvcTest approach will
+   create ApplicationContext that contains only web components - controller classes and omits any
+   other components that are not part of web layer(service, dao...etc) . Other components, if required for
+   the test, can be mocked with usage of @MockBean annotation or delivered by
+   @Configuration annotated class imported with usage of @Import annotation.
+   
+2. @WebMvcTest supports two cases:
+   1. @WebMvcTest supports two cases:
+      1. `@WebMvcTest(CityController.class)`
+   2. Multiple (All found) Controllers Auto-Configuration – just annotate test with 
+      1. `@WebMvcTest`
+
+3. @WebMvcTest annotation will auto-configure:
+   1. Mock Mvc
+   2. @Controller annotated class
+   3. @ControllerAdvice annotated class
+   4. @JsonComponent annotated class
+   5. @Converter annotated class
+   6. @GenericConverter annotated class
+   7. @Filter annotated class
+   8. @WebMvcConfigurer annotated class
+   9. @HandlerMethodArgumentResolver annotated class
+4. Example [Source Code](TestingSpringBoot/src/test/java/com/raghu/spingboot/test/controller/CityControllerMockMvcSingleTest.java)
+
+
+@MockBean vs @Mock
+-------
+1. @Mock annotation comes from Mockito Framework which allows for easy Mock
+   creation. This annotation is used by MockitoJUnitRunner, each field annotated
+   with it will have Mock for specified class created. This annotation does not inject
+   mocks into tested class on itself, to use injection you need to have target class
+   annotated with @InjectMocks annotation
+2. @MockBean annotation comes from spring-boot-test, it creates Mockito Mock and
+   also injects it into Application Context created by @SpringBootTest. All beans
+   which refers to mocked class via @Autowired will get this mock injected instead of
+   real class.
+3. Main difference between @MockBean and @Mock annotation is that @MockBean
+   creates mock and injects it into Application Context, while @Mock annotation only
+   creates it, if you want to inject it, you can do it manually or with @InjectMocks
+   annotation, however injection is being done to the class not whole Application
+   Context.
+4. Examples - [Source Code](MockVSMockBean/src/test/java/com/raghu/test/mock)
+
+@DataJpaTest
+----------
+1. You want to use @DataJpaTest annotation whenever writing an Integration Test for
+   JPA related components of your application like Entities or Repositories.
+   
+2. @DataJpaTest annotation configures:
+   1. In-memory embedded database – behavior can be disabled with
+      `@AutoConfigureTestDatabase(replace = Replace.NONE)`
+   2. Scans and configures @Entity beans
+   3. Scans and configures Spring Data Repositories
+   4. Configures TestEntityManager
+   5. Does not load other components like @Component, @Service, @Controller
+      etc.
+3. Every @DataJpaTest is transactional by default, after each test transaction is
+   rolled back. You can use @Transactional annotation to customize this behavior
+4. When using @DataJpaTest you can access TestEntityManager, which contains
+   subset of EntityManager methods that are useful for testing
+5. Example 
+   1. Testing Entity
+      1. [Source code](TestingSpringBoot/src/test/java/com/raghu/spingboot/test/controller/EmployeeTest.java) 
+   2. Test DAO class
+      1. [Source code](TestingSpringBoot/src/test/java/com/raghu/spingboot/test/controller/EmployeeRepositoryTest.java)
